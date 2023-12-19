@@ -39,6 +39,8 @@ def strict_delete_selection(view, edit, region):
 	out = out.replace(replace_char, "").strip()
 	view.replace(edit, region, out)
 
+
+
 	return region.begin()
 
 def remove_empty_expression(view, edit, point, fail_direction):
@@ -122,6 +124,9 @@ def paredit_backward_delete(view, edit):
 
 def paredit_kill_abstract(view, edit, expression):
 	def f(region):
+		# Get the text content of the selected region
+		selected_text = view.substr(region)
+		sublime.set_clipboard(selected_text)
 		if not region.a == region.b:
 			return shared.erase_region(view, edit, region)
 
@@ -134,17 +139,26 @@ def paredit_kill_abstract(view, edit, expression):
 				shared.erase_region(view, edit, region)
 				return lb
 			elif expression:
-				view.erase(edit, sublime.Region(lb + 1, rb - 1))
+				actual_region = sublime.Region(lb + 1, rb - 1)
+				reduced_text = view.substr(actual_region)
+				sublime.set_clipboard(reduced_text)
+				view.erase(edit, actual_region)
 				return lb + 1
 			else:
-				view.erase(edit, sublime.Region(point, rb - 1))
+				actual_region = sublime.Region(point, rb - 1)
+				reduced_text = view.substr(actual_region)
+				sublime.set_clipboard(reduced_text)
+				view.erase(edit, actual_region)
 				return point
 		else:
 			line_region = view.line(point)
 			a = line_region.begin()
 			if not expression:
 				a = point
-			return shared.erase_region(view, edit, sublime.Region(a, line_region.end()))
+			actual_region = sublime.Region(a, line_region.end());
+			reduced_text = view.substr(actual_region)
+			sublime.set_clipboard(reduced_text)
+			return shared.erase_region(view, edit, actual_region)
 
 	shared.edit_selections(view, f)
 
